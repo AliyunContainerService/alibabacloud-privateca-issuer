@@ -1,0 +1,9 @@
+apiVersion: alibabacloud.com/v1beta
+kind: PCAClusterIssuer
+metadata:
+  labels:
+    app.kubernetes.io/name: alibabacloud-privateca-issuer
+    app.kubernetes.io/managed-by: kustomize
+  name: pcaclusterissuer-sample
+spec:
+  # TODO(user): Add fields here

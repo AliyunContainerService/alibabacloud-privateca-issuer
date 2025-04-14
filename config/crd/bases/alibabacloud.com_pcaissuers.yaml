@@ -1,0 +1,97 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: pcaissuers.alibabacloud.com
+spec:
+  group: alibabacloud.com
+  names:
+    kind: PCAIssuer
+    listKind: PCAIssuerList
+    plural: pcaissuers
+    singular: pcaissuer
+  scope: Namespaced
+  versions:
+  - name: v1beta
+    schema:
+      openAPIV3Schema:
+        description: PCAIssuer is the Schema for the pcaissuers API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PCAIssuerSpec defines the desired state of PCAIssuer and
+              PCAClusterIssuer
+            properties:
+              accessKey:
+                properties:
+                  key:
+                    type: string
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - key
+                - name
+                - namespace
+                type: object
+              accessKeySecret:
+                properties:
+                  key:
+                    type: string
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                required:
+                - key
+                - name
+                - namespace
+                type: object
+              oidcProviderARN:
+                type: string
+              oidcTokenFilePath:
+                type: string
+              parent_identifier:
+                description: ParentIdentifier is CA certificate identifier.
+                type: string
+              ramRoleARN:
+                type: string
+              ramRoleSessionName:
+                type: string
+              remoteRamRoleARN:
+                type: string
+              remoteRamRoleSessionName:
+                type: string
+              roleSessionExpiration:
+                type: string
+            required:
+            - parent_identifier
+            type: object
+          status:
+            description: PCAIssuerStatus defines the observed state of PCAIssuer and
+              PCAClusterIssuer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
