@@ -52,7 +52,7 @@ type PCAClusterIssuerList struct {
 // PCAIssuerSpec defines the desired state of PCAIssuer and PCAClusterIssuer
 type PCAIssuerSpec struct {
 	// ParentIdentifier is CA certificate identifier.
-	ParentIdentifier         string     `json:"parent_identifier"`
+	ParentIdentifier         string     `json:"parentIdentifier"`
 	AccessKey                *SecretRef `json:"accessKey,omitempty"`
 	AccessKeySecret          *SecretRef `json:"accessKeySecret,omitempty"`
 	RAMRoleARN               string     `json:"ramRoleARN,omitempty"`
