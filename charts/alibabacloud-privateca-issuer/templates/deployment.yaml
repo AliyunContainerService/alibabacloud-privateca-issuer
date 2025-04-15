@@ -44,8 +44,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: WATCH_NAMESPACE
-              value: {{ .Values.env.WATCH_NAMESPACE }}
           {{- range $name, $value := .Values.env }}
           {{- if not (empty $value) }}
           - name: {{ $name | quote }}

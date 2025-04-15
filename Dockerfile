@@ -12,6 +12,7 @@ COPY api/ api/
 COPY pkg/ pkg/
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o alibabacloud-privateca-issuer cmd/main.go
+RUN chmod +x /workspace/alibabacloud-privateca-issuer
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /

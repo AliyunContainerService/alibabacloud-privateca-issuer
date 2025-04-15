@@ -40,3 +40,23 @@ Create the name of the service account to use
     {{ default "default" .Values.serviceAccount.name }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "alibabacloud-privateca-issuer.labels" -}}
+helm.sh/chart: {{ include "alibabacloud-privateca-issuer.chart" . }}
+{{ include "alibabacloud-privateca-issuer.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "alibabacloud-privateca-issuer.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
