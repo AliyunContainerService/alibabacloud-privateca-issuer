@@ -19,6 +19,7 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/AliyunContainerService/alibabacloud-privateca-issuer/pkg/controller"
 	"github.com/AliyunContainerService/alibabacloud-privateca-issuer/pkg/issuer"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -83,6 +84,30 @@ func main() {
 	issuerManager := issuer.NewIssuerManager(mgr.GetClient(), region, maxConcurrentCertificationRequests)
 	if err = issuerManager.SetupWithManager(ctx, mgr); err != nil {
 		setupLog.Error(err, "unable to create Signer controllers")
+		os.Exit(1)
+	}
+
+	pcaClusterIssuerReconciler := controller.PCAClusterIssuerReconciler{
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		Log:           ctrl.Log.WithName("controllers").WithName("PCAClusterIssuer"),
+		Ctx:           ctx,
+		IssuerManager: issuerManager,
+	}
+	if err = (&pcaClusterIssuerReconciler).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PCAClusterIssuer")
+		os.Exit(1)
+	}
+
+	pcaIssuerReconciler := controller.PCAIssuerReconciler{
+		Client:        mgr.GetClient(),
+		Scheme:        mgr.GetScheme(),
+		Log:           ctrl.Log.WithName("controllers").WithName("PCAIssuer"),
+		Ctx:           ctx,
+		IssuerManager: issuerManager,
+	}
+	if err = (&pcaIssuerReconciler).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PCAIssuer")
 		os.Exit(1)
 	}
 

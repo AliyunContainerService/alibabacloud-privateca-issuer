@@ -83,7 +83,7 @@ func (m *IssuerManager) GetAuthCred(region string, maxConcurrentCount int, a *Au
 	return cred, nil
 }
 
-func (m *IssuerManager) createAuthConfig(ctx context.Context, key string, issuerSpec *v1beta.PCAIssuerSpec) (*AuthConfig, error) {
+func (m *IssuerManager) CreateAuthConfig(ctx context.Context, key string, issuerSpec *v1beta.PCAIssuerSpec) (*AuthConfig, error) {
 	var accessKey, accessKeySecret string
 	var authConfig *AuthConfig
 	if issuerSpec.AccessKey != nil {

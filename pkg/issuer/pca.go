@@ -6,7 +6,6 @@ import (
 	"time"
 
 	cas20200630 "github.com/alibabacloud-go/cas-20200630/client"
-	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	issuerapi "github.com/cert-manager/issuer-lib/api/v1alpha1"
@@ -15,10 +14,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/AliyunContainerService/alibabacloud-privateca-issuer/api/v1beta"
-)
-
-const (
-	casEndpoint = "cas.aliyuncs.com"
 )
 
 func (i *IssuerManager) SetupWithManager(ctx context.Context, mgr ctrl.Manager) error {
@@ -42,27 +37,10 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 	}
 
 	pcaClient, err := i.GetClient(key)
-	if err != nil {
+	if err != nil || pcaClient == nil {
 		return signer.PEMBundle{}, fmt.Errorf("get pca client %s error %v", key, err)
 	}
-	if pcaClient == nil {
-		authConfig, err := i.createAuthConfig(ctx, key, issuerSpec)
-		if err != nil {
-			return signer.PEMBundle{}, fmt.Errorf("create auth config %s error %v", key, err)
-		}
-		cred, err := i.GetAuthCred(i.Region, i.MaxConcurrentCount, authConfig)
-		if err != nil {
-			return signer.PEMBundle{}, fmt.Errorf("get auth cred %s error %v", key, err)
-		}
-		pcaClient, err = cas20200630.NewClient(&openapi.Config{
-			Endpoint:   tea.String(casEndpoint),
-			Credential: cred,
-		})
-		if err != nil {
-			return signer.PEMBundle{}, fmt.Errorf("create pca client %s error %v", key, err)
-		}
-		i.ClientMap.Store(key, pcaClient)
-	}
+
 	createCustomCertificateRequest, err := i.CreateCustomCertificateReq(issuerSpec, cr)
 	if err != nil {
 		return signer.PEMBundle{}, err

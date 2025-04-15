@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/credentials/provider"
 	cas20200630 "github.com/alibabacloud-go/cas-20200630/client"
+	"github.com/go-logr/logr"
 	"k8s.io/klog/v2"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sync"
 	"time"
@@ -18,6 +20,7 @@ type IssuerManager struct {
 	RamLock            *sync.Mutex
 	RamProvider        map[string]provider.Stopper
 	KubeClient         client.Client
+	log                logr.Logger
 }
 
 func NewIssuerManager(kubeClient client.Client, region string, maxConcurrentCount int) *IssuerManager {
@@ -28,7 +31,9 @@ func NewIssuerManager(kubeClient client.Client, region string, maxConcurrentCoun
 		RamProvider:        make(map[string]provider.Stopper),
 		ClientMap:          sync.Map{},
 		KubeClient:         kubeClient,
+		log:                ctrl.Log.WithName("issuerManager"),
 	}
+
 }
 
 func (m *IssuerManager) RegisterRamProvider(clientName string, stopper provider.Stopper) {
