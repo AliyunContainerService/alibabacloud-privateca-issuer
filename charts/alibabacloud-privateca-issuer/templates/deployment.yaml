@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "alibabacloud-privateca-issuer.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+    helm.sh/chart: {{ include "alibabacloud-privateca-issuer.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if .Values.podLabels }}
+      {{- toYaml .Values.podLabels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ template "alibabacloud-privateca-issuer.serviceAccountName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          command:
+            - alibabacloud-privateca-issuer
+            - --leader-elect=true
+            - --max-concurrent-certificate-requests={{ .Values.command.maxcConcurrentcCertificateRequests }}
+            - --region={{ .Values.command.region }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: WATCH_NAMESPACE
+              value: {{ .Values.env.WATCH_NAMESPACE }}
+          {{- range $name, $value := .Values.env }}
+          {{- if not (empty $value) }}
+          - name: {{ $name | quote }}
+            value: {{ $value | quote }}
+          {{- end }}
+          {{- end }}
+          # Params for env vars populated from k8s secrets
+          {{- range $key, $value := .Values.envVarsFromSecret }}
+          - name: {{ $key }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $value.secretKeyRef | quote }}
+                key: {{ $value.key | quote }}
+          {{- end }}
+          {{- if .Values.rrsa.enable }}
+          volumeMounts:
+            - mountPath: /var/run/secrets/tokens
+              name: {{ template "alibabacloud-privateca-issuer.serviceAccountName" . }}
+          {{- end }}
+      {{- with .Values.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.rrsa.enable }}
+      - name: {{ template "alibabacloud-privateca-issuer.serviceAccountName" . }}
+        projected:
+          sources:
+            - serviceAccountToken:
+                path: alibabacloud-privateca-issuer
+                expirationSeconds: 7200
+                audience: "sts.aliyuncs.com"
+      {{- end }}

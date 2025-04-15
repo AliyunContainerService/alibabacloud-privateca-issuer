@@ -1,0 +1,124 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "alibabacloud-privateca-issuer.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+    helm.sh/chart: {{ include "alibabacloud-privateca-issuer.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+rules:
+  - apiGroups:
+      - ""
+      - coordination.k8s.io
+    resources:
+      - configmaps
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - alibabcloud.com
+    resources:
+      - pcaclusterissuers
+      - pcaclusterissuers/finalizers
+      - pcaclusterissuers/status
+      - pcaissuers
+      - pcaissuers/finalizers
+      - pcaissuers/status
+    verbs:
+      - "*"
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificaterequests
+    verbs:
+      - get
+      - list
+      - update
+      - watch
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - certificaterequests/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "alibabacloud-privateca-issuer.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "alibabacloud-privateca-issuer.name" . }}
+    helm.sh/chart: {{ include "alibabacloud-privateca-issuer.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ template "alibabacloud-privateca-issuer.fullname" . }}
+subjects:
+  - name: {{ template "alibabacloud-privateca-issuer.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace | quote }}
+    kind: ServiceAccount
+---
+{{- end -}}
+{{- if .Values.approverRole.enabled -}}
+# permissions to approve all alibabacloud requests
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve
+  labels:
+    {{- include "alibabacloud-privateca-issuer.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - signers
+    verbs:
+      - approve
+    resourceNames:
+      - pcaissuers.alibabacloud.com/*
+      - pcaclusterissuers.alibabacloud.com/*
+---
+# CertificateRequests
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve-binding
+  labels:
+    {{- include "alibabacloud-privateca-issuer.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.approverRole.serviceAccountName }}
+    namespace: {{ .Values.approverRole.namespace }}
+---
+{{- end }}

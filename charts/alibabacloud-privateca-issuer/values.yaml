@@ -1,0 +1,59 @@
+command:
+  region:
+  maxcConcurrentcCertificateRequests: 10
+
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+
+rrsa:
+  # Specifies whether using rrsa and enalbe sa token volume projection, default is false
+  enable: false
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Specifies annotations for this service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+replicaCount: 2
+
+image:
+  repository: registry-cn-hangzhou.ack.aliyuncs.com/acs/alibabacloud-privateca-issuer
+  tag: v1.0.0
+  pullPolicy: Always
+
+
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+securityContext: {}
+# fsGroup: 65534
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1G
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+approverRole:
+  # Create the ClusterRole to allow the issuer to approve certificate requests
+  enabled: true
+  # Service account give approval permission
+  serviceAccountName: cert-manager
+  # Namespace the service account resides in
+  namespace: cert-manager
