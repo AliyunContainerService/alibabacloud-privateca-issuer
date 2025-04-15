@@ -58,7 +58,6 @@ type PCAIssuerSpec struct {
 	RAMRoleARN               string     `json:"ramRoleARN,omitempty"`
 	RAMRoleSessionName       string     `json:"ramRoleSessionName,omitempty"`
 	OIDCProviderARN          string     `json:"oidcProviderARN,omitempty"`
-	OIDCTokenFilePath        string     `json:"oidcTokenFilePath,omitempty"`
 	RoleSessionExpiration    string     `json:"roleSessionExpiration,omitempty"`
 	RemoteRAMRoleARN         string     `json:"remoteRamRoleARN,omitempty"`
 	RemoteRAMRoleSessionName string     `json:"remoteRamRoleSessionName,omitempty"`

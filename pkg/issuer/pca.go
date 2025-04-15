@@ -8,6 +8,7 @@ import (
 	cas20200630 "github.com/alibabacloud-go/cas-20200630/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	issuerapi "github.com/cert-manager/issuer-lib/api/v1alpha1"
 	"github.com/cert-manager/issuer-lib/controllers"
 	"github.com/cert-manager/issuer-lib/controllers/signer"
@@ -70,10 +71,11 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 		return signer.PEMBundle{}, err
 	}
 	if resp != nil && resp.Body != nil {
-		return signer.PEMBundle{
-			CAPEM:    []byte(tea.StringValue(resp.Body.Certificate)),
-			ChainPEM: []byte(tea.StringValue(resp.Body.CertificateChain)),
-		}, nil
+		pemBundle, err := pki.ParseSingleCertificateChainPEM([]byte(tea.StringValue(resp.Body.Certificate)))
+		if err != nil {
+			return signer.PEMBundle{}, fmt.Errorf("parse %s single certificate chain pem error %v", key, err)
+		}
+		return signer.PEMBundle(pemBundle), nil
 	}
 	return signer.PEMBundle{}, fmt.Errorf("CreateCustomCertificate resp is invalid, certificate obj %s, issuer obj %s",
 		fmt.Sprintf("%s/%s", cr.GetName(), cr.GetNamespace()), fmt.Sprintf("%s/%s", issuerObject.GetName(), issuerObject.GetNamespace()))
