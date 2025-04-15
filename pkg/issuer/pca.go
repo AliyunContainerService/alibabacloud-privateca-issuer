@@ -61,6 +61,7 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 		if err != nil {
 			return signer.PEMBundle{}, fmt.Errorf("create pca client %s error %v", key, err)
 		}
+		i.ClientMap.Store(key, pcaClient)
 	}
 	createCustomCertificateRequest, err := i.CreateCustomCertificateReq(issuerSpec, cr)
 	if err != nil {
