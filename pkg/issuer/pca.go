@@ -28,6 +28,7 @@ func (i *IssuerManager) SetupWithManager(ctx context.Context, mgr ctrl.Manager) 
 		FieldOwner:       "pcaissuer.alibabacloud.com",
 		MaxRetryDuration: 1 * time.Minute,
 		Sign:             i.Sign,
+		Check:            i.Check,
 		EventRecorder:    mgr.GetEventRecorderFor("pcaissuer.alibabacloud.com"),
 	}).SetupWithManager(ctx, mgr)
 }
@@ -76,6 +77,10 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 	}
 	return signer.PEMBundle{}, fmt.Errorf("CreateCustomCertificate resp is invalid, certificate obj %s, issuer obj %s",
 		fmt.Sprintf("%s/%s", cr.GetName(), cr.GetNamespace()), fmt.Sprintf("%s/%s", issuerObject.GetName(), issuerObject.GetNamespace()))
+}
+
+func (i *IssuerManager) Check(ctx context.Context, issuerObject issuerapi.Issuer) error {
+	return nil
 }
 
 func (i *IssuerManager) getIssuerDetails(issuerObject issuerapi.Issuer) (*v1beta.PCAIssuerSpec, string, error) {
