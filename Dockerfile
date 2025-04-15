@@ -11,11 +11,11 @@ COPY cmd/ cmd/
 COPY api/ api/
 COPY pkg/ pkg/
 
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o alibabacloud-privateca-issuer cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o alibabacloud-privateca-issuer cmd/main.go
 
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /
-COPY --from=builder /workspace/manager .
+COPY --from=builder /workspace/alibabacloud-privateca-issuer .
 USER 65532:65532
 
 ENTRYPOINT ["/alibabacloud-privateca-issuer"]
