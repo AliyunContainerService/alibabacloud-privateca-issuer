@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.24 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.24 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -12,11 +12,10 @@ COPY api/ api/
 COPY pkg/ pkg/
 
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -o alibabacloud-privateca-issuer cmd/main.go
-RUN chmod +x /workspace/alibabacloud-privateca-issuer
 
-FROM gcr.io/distroless/static:nonroot
+FROM --platform=${TARGETPLATFORM:-linux/amd64} gcr.io/distroless/static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/alibabacloud-privateca-issuer .
 USER 65532:65532
 
-ENTRYPOINT ["/alibabacloud-privateca-issuer"]
+CMD ["/alibabacloud-privateca-issuer"]

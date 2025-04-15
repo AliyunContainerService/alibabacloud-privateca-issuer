@@ -31,7 +31,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           command:
-            - alibabacloud-privateca-issuer
+            - /alibabacloud-privateca-issuer
             - --leader-elect=true
             - --max-concurrent-certificate-requests={{ .Values.command.maxcConcurrentcCertificateRequests }}
             - --region={{ .Values.command.region }}
