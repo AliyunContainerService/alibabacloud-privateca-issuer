@@ -1,6 +1,6 @@
 command:
   region:
-  maxcConcurrentcCertificateRequests: 10
+  maxConcurrentCertificateRequests: 10
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -24,7 +24,7 @@ replicaCount: 2
 image:
   repository: registry-cn-hangzhou.ack.aliyuncs.com/acs/alibabacloud-privateca-issuer
   tag: v1.0.0
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 
 nameOverride: ""

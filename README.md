@@ -1,135 +1,148 @@
-# alibabacloud-privateca-issuer
-// TODO(user): Add simple overview of use/purpose
+# AlibabaCloud Private CA Issuer
 
-## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+English | [简体中文](./README-zh_CN.md)
 
-## Getting Started
+[AlibabaCloud Private CA Issuer](https://github.com/AliyunContainerService/alibabacloud-privateca-issuer), as an external open-source extension of cert-manager, can help you apply for certificates through [Alibaba Cloud Private CA](https://www.alibabacloud.com/help/en/ssl-certificate/user-guide/private-ca) and store them as TLS secrets in your Kubernetes cluster.
 
-### Prerequisites
-- go version v1.23.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
+[cert-manager](https://github.com/cert-manager/cert-manager) is an open-source project that helps you create TLS certificates for workloads in your Kubernetes or OpenShift cluster and renews the certificates before they expire.
 
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
+## Install
 
-```sh
-make docker-build docker-push IMG=<some-registry>/alibabacloud-privateca-issuer:tag
-```
+1. install cert-manager through **[install](https://cert-manager.io/docs/installation/)**
 
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
+2. Make sure that the credentials used by the **AlibabaCloud Private CA Issuer** has sufficient permissions to access the Alibaba Cloud Private CA service. You can use the following two configuration methods, and we recommend you to use the second **RRSA** method to achieve authorization in the Pod level.
 
-**Install the CRDs into the cluster:**
+   - Add permissions to the WorkerRole corresponding to the cluster
 
-```sh
-make install
-```
+     - Log in to the Container Service console
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+     - Select the cluster to enter the cluster details page
 
-```sh
-make deploy IMG=<some-registry>/alibabacloud-privateca-issuer:tag
-```
+     - Navigate to the **Cluster Resources** page in the cluster information. Once there, click on the Worker RAM role with the corresponding name **KubernetesWorkerRole-xxxxxxxxxxxxxxx**. This will automatically take you to the console page associated with the RAM role.
 
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+     - Add PCA RAM policy below into the policy bind to the worker role(Only authorize the RAM policy needed for synchronization services, ensuring the principle of minimum permissions.)
 
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
+       ```
+       {
+           "Effect": "Allow",
+           "Action": [
+             "yundun-cert:CreateCustomCertificate",
+             "yundun-cert:DescribeCACertificate"
+           ],
+           "Resource": "*"
+       }
+       ```
 
-```sh
-kubectl apply -k config/samples/
-```
+   - Implement Pod dimension authorization through [RRSA method](https://www.alibabacloud.com/help/en/ack/ack-managed-and-ack-dedicated/user-guide/use-rrsa-to-authorize-pods-to-access-different-cloud-services)
+     - [Enable RRSA functionality](https://www.alibabacloud.com/help/en/container-service-for-kubernetes/latest/use-rrsa-to-enforce-access-control#section-ywl-59g-j8h)
+     - [Use RRSA function](https://www.alibabacloud.com/help/en/container-service-for-kubernetes/latest/use-rrsa-to-enforce-access-control#section-rmr-eeh-878): Create the corresponding RAM role for the specified serviceaccount, set the trust policy for the RAM role, and authorize the RAM role
 
->**NOTE**: Ensure that the samples has default values to test it out.
+3. Log in to the Container Service console
 
-### To Uninstall
-**Delete the instances (CRs) from the cluster:**
+   * Select **Marketplace** -> **Marketplace** in the left navigation bar, enter **alibabacloud-privateca-issuer** in the search bar, and select to enter the application page;
+   * Select the target cluster, namespace, and release name to be installed;
+   * Configure custom parameters on the parameter configuration page. For parameter descriptions, see the **configuration instructions** below;
+   * Click the **OK** button to complete the installation.
 
-```sh
-kubectl delete -k config/samples/
-```
+   If you need to use the RRSA method, please modify the helm values.yaml as follows, refer to [HELM Configuration instructions](#helm-configuration-instructions) for other configuration details.
 
-**Delete the APIs(CRDs) from the cluster:**
+   ```yaml
+   rrsa:
+     # Specifies whether using rrsa and enalbe sa token volume projection, default is false
+     enable: true
+   ```
 
-```sh
-make uninstall
-```
+## Upgrade
 
-**UnDeploy the controller from the cluster:**
+1. Log in to the Container Service console;
+2. Select the target cluster and click to enter the cluster details page;
+3. Select **Applications** -> **Helm** in the navigation bar on the left, find the **Update** button corresponding to **alibabacloud-privateca-issuer**, modify the configuration and click the **OK** button to complete the installation.
 
-```sh
-make undeploy
-```
+## Uninstall
 
-## Project Distribution
+1. Log in to the Container Service console;
+2. Select the target cluster and click to enter the cluster details page;
+3. Select **Applications** -> **Helm** in the navigation bar on the left, find the **Delete** button corresponding to **alibabacloud-privateca-issuer**, and click the **Delete** button in the operation bar to delete it.
 
-Following the options to release and provide this solution to the users.
+## Helm Configuration Instructions
 
-### By providing a bundle with all YAML files
+| parameter                                | introduction                                                 |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| rbac.create                              | Whether to create and use RBAC resources, the default is true |
+| rrsa.enable                              | Whether to enable the RRSA feature, the default is false.    |
+| serviceAccount.create                    | Whether to create serviceaccount, the default is true        |
+| replicaCount                             | Number of controller copies                                  |
+| image.repository                         | Specified alibabacloud-privateca-issuer image warehouse name |
+| image.tag                                | Specified alibabacloud-privateca-issuer image tag            |
+| image.pullPolicy                         | Image pull strategy, default is Always                       |
+| command.region                           | The region where the Kubernetes cluster is located           |
+| command.maxConcurrentCertificateRequests | Maximum number of certificate requests per second.           |
 
-1. Build the installer for the image built and published in the registry:
+## Instructions for use
 
-```sh
-make build-installer IMG=<some-registry>/alibabacloud-privateca-issuer:tag
-```
+If you have an available CA certificate in the PCA service and want to issue certificates based on it, please follow the steps below to configure.
 
-**NOTE:** The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without its
-dependencies.
+1. **Deploy PCAIssuer/PCAClusterIssuer**
 
-2. Using the installer
+   AlibabaCloud Private CA Issuer includes two CRDs (PCAIssuer and PCAClusterIssuer), representing CA certificates available in a PCA service, here is a simple example use RRSA method. (For detailed configuration, please refer to [CRD configuration introduction](#crd-configuration-introduction))
 
-Users can just run 'kubectl apply -f <URL for YAML BUNDLE>' to install
-the project, i.e.:
+   ```yaml
+   apiVersion: 'alibabacloud.com/v1beta'
+   kind: PCAClusterIssuer
+   metadata:
+     name: ca-issuer
+   spec:
+     parentIdentifier: 1f0169ee-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+     ramRoleARN: "acs:ram::xxxxxxxxxxxxxx:role/test-pca"
+     ramRoleSessionName: "test-pca"
+     oidcProviderARN: acs:ram::xxxxxxxxxxxxxx:oidc-provider/ack-rrsa-{cluster-id}
+   ```
 
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/alibabacloud-privateca-issuer/<tag or branch>/dist/install.yaml
-```
+2. **Deploy Certificate**, a **Certificate** represents a certificate request, and it needs to reference a specific Issuer to apply for a specific certificate. Here is a simple example(For detailed configuration, please refer to [Certificate](https://cert-manager.io/docs/usage/certificate/))
 
-### By providing a Helm Chart
+   ```yaml
+   apiVersion: cert-manager.io/v1
+   kind: Certificate
+   metadata:
+     name: pca-certificate
+     namespace: default
+   spec:
+     duration: 1440h
+     dnsNames:
+       - alibabacloud.com
+       - www.example.com
+       - fff.com
+     emailAddresses:
+       - example@aa.com
+     ipAddresses:
+       - 192.168.0.5
+     isCA: false
+     usages:
+       - server auth
+       - digital signature
+       - key encipherment
+     commonName: pca-certificate-common-name
+     secretName: pca-certificate-secret
+     privateKey:
+       algorithm: ECDSA
+       size: 256
+     issuerRef:
+       name: ca-issuer
+       kind: PCAClusterIssuer
+       group: alibabacloud.com
+   ```
 
-1. Build the chart using the optional helm plugin
+3. Upon completing the above steps, you can see that a TLS secret has been generated in the namespace where the Certificate is located.
 
-```sh
-kubebuilder edit --plugins=helm/v1-alpha
-```
+## CRD configuration introduction
 
-2. See that a chart was generated under 'dist/chart', and users
-can obtain this solution from there.
+ **PCAIssuer**/**PCAClusterIssuer** spec
 
-**NOTE:** If you change the project, you need to update the Helm Chart
-using the same command above to sync the latest changes. Furthermore,
-if you create webhooks, you need to use the above command with
-the '--force' flag and manually ensure that any custom configuration
-previously added to 'dist/chart/values.yaml' or 'dist/chart/manager/manager.yaml'
-is manually re-applied afterwards.
-
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
-## License
-
-Copyright 2025.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+| parameter                | introduction                                               |
+| ------------------------ | ---------------------------------------------------------- |
+| parentIdentifier         | CA Certificate identifier in the PCA Service.              |
+| ramRoleARN               | RAM Role ARN used to access the PCA service.               |
+| ramRoleSessionName       | RAM Role session name.                                     |
+| oidcProviderARN          | OIDC Provider ARN.                                         |
+| remoteRamRoleArn         | Cross-account RAM Role ARN used to access the PCA service. |
+| remoteRamRoleSessionName | Cross-account RAM role session name.                       |

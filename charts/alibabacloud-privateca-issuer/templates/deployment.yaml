@@ -33,7 +33,7 @@ spec:
           command:
             - /alibabacloud-privateca-issuer
             - --leader-elect=true
-            - --max-concurrent-certificate-requests={{ .Values.command.maxcConcurrentcCertificateRequests }}
+            - --max-concurrent-certificate-requests={{ .Values.command.maxConcurrentCertificateRequests }}
             - --region={{ .Values.command.region }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
