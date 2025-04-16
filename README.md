@@ -8,7 +8,7 @@ English | [简体中文](./README-zh_CN.md)
 
 ## Install
 
-1. install cert-manager through **[install](https://cert-manager.io/docs/installation/)**
+1. Ensure that cert-manager is already installed in the cluster
 
 2. Make sure that the credentials used by the **AlibabaCloud Private CA Issuer** has sufficient permissions to access the Alibaba Cloud Private CA service. You can use the following two configuration methods, and we recommend you to use the second **RRSA** method to achieve authorization in the Pod level.
 

@@ -6,7 +6,7 @@
 
 ## Install
 
-1. 通过 **[install](https://cert-manager.io/docs/installation/)** 安装 cert-manager
+1. 确保集群中已经安装 cert-manager
 
 2. 为确保 **AlibabaCloud Private CA Issuer** 使用的凭据具有足够的权限来访问阿里云证书服务，可以使用如下两种配置方式，推荐使用RRSA方式，实现Pod维度的授权
 
