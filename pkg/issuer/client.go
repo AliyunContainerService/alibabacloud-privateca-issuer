@@ -6,6 +6,7 @@ import (
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/credentials/provider"
 	cas20200630 "github.com/alibabacloud-go/cas-20200630/client"
 	"github.com/go-logr/logr"
+	"golang.org/x/time/rate"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,10 +22,12 @@ type IssuerManager struct {
 	RamProvider        map[string]provider.Stopper
 	KubeClient         client.Client
 	log                logr.Logger
+	signingLimiter     *rate.Limiter
 }
 
 func NewIssuerManager(kubeClient client.Client, region string, maxConcurrentCount int) *IssuerManager {
 	return &IssuerManager{
+		signingLimiter:     rate.NewLimiter(rate.Limit(maxConcurrentCount), 1),
 		MaxConcurrentCount: maxConcurrentCount,
 		Region:             region,
 		RamLock:            &sync.Mutex{},

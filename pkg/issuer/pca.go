@@ -30,6 +30,12 @@ func (i *IssuerManager) SetupWithManager(ctx context.Context, mgr ctrl.Manager) 
 }
 
 func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestObject, issuerObject issuerapi.Issuer) (signer.PEMBundle, error) {
+	waitTimeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+	err := i.signingLimiter.Wait(waitTimeoutCtx)
+	if err != nil {
+		return signer.PEMBundle{}, err
+	}
 	key := ""
 	issuerSpec, key, err := i.getIssuerDetails(issuerObject)
 	if err != nil {
