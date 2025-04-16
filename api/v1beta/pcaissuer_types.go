@@ -52,21 +52,13 @@ type PCAClusterIssuerList struct {
 // PCAIssuerSpec defines the desired state of PCAIssuer and PCAClusterIssuer
 type PCAIssuerSpec struct {
 	// ParentIdentifier is CA certificate identifier.
-	ParentIdentifier         string     `json:"parentIdentifier"`
-	AccessKey                *SecretRef `json:"accessKey,omitempty"`
-	AccessKeySecret          *SecretRef `json:"accessKeySecret,omitempty"`
-	RAMRoleARN               string     `json:"ramRoleARN,omitempty"`
-	RAMRoleSessionName       string     `json:"ramRoleSessionName,omitempty"`
-	OIDCProviderARN          string     `json:"oidcProviderARN,omitempty"`
-	RoleSessionExpiration    string     `json:"roleSessionExpiration,omitempty"`
-	RemoteRAMRoleARN         string     `json:"remoteRamRoleARN,omitempty"`
-	RemoteRAMRoleSessionName string     `json:"remoteRamRoleSessionName,omitempty"`
-}
-
-type SecretRef struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Key       string `json:"key"`
+	ParentIdentifier         string `json:"parentIdentifier"`
+	RAMRoleARN               string `json:"ramRoleARN,omitempty"`
+	RAMRoleSessionName       string `json:"ramRoleSessionName,omitempty"`
+	OIDCProviderARN          string `json:"oidcProviderARN,omitempty"`
+	RoleSessionExpiration    string `json:"roleSessionExpiration,omitempty"`
+	RemoteRAMRoleARN         string `json:"remoteRamRoleARN,omitempty"`
+	RemoteRAMRoleSessionName string `json:"remoteRamRoleSessionName,omitempty"`
 }
 
 // +kubebuilder:object:root=true

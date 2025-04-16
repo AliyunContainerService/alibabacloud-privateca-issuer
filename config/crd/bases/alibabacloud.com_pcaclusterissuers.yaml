@@ -40,35 +40,7 @@ spec:
             description: PCAIssuerSpec defines the desired state of PCAIssuer and
               PCAClusterIssuer
             properties:
-              accessKey:
-                properties:
-                  key:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                required:
-                - key
-                - name
-                - namespace
-                type: object
-              accessKeySecret:
-                properties:
-                  key:
-                    type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                required:
-                - key
-                - name
-                - namespace
-                type: object
               oidcProviderARN:
-                type: string
-              oidcTokenFilePath:
                 type: string
               parentIdentifier:
                 description: ParentIdentifier is CA certificate identifier.

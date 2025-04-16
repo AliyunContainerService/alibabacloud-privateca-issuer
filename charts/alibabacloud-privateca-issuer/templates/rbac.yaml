@@ -31,14 +31,6 @@ rules:
       - create
       - patch
   - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
       - alibabacloud.com
     resources:
       - pcaclusterissuers
@@ -105,7 +97,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{.Values.approverRole.serviceAccountName}}-controller-approve
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve:alibabacloud.com
   labels:
     {{- include "alibabacloud-privateca-issuer.labels" . | nindent 4 }}
 rules:
@@ -123,13 +115,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{.Values.approverRole.serviceAccountName}}-controller-approve-binding
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve:alibabacloud.com
   labels:
     {{- include "alibabacloud-privateca-issuer.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{.Values.approverRole.serviceAccountName}}-controller-approve
+  name: {{.Values.approverRole.serviceAccountName}}-controller-approve:alibabacloud.com
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.approverRole.serviceAccountName }}

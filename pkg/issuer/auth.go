@@ -4,9 +4,7 @@ import (
 	"context"
 	"github.com/AliyunContainerService/ack-ram-tool/pkg/credentials/provider"
 	"github.com/AliyunContainerService/alibabacloud-privateca-issuer/api/v1beta"
-	"github.com/AliyunContainerService/alibabacloud-privateca-issuer/pkg/utils"
 	"github.com/aliyun/credentials-go/credentials"
-	"k8s.io/klog/v2"
 	"time"
 )
 
@@ -19,8 +17,6 @@ type AuthConfig struct {
 	ClientName            string
 	RoleArn               string
 	OidcArn               string
-	AccessKey             string
-	AccessSecretKey       string
 	RoleSessionName       string
 	RoleSessionExpiration string
 	RemoteRoleArn         string
@@ -42,19 +38,6 @@ func (m *IssuerManager) GetAuthCred(region string, maxConcurrentCount int, a *Au
 		})
 		providers = append(providers, oidcProvider)
 	}
-	if a.AccessKey != "" && a.AccessSecretKey != "" && a.RoleSessionName != "" && a.RoleArn != "" {
-		ramRoleProvider := provider.NewRoleArnProvider(provider.NewAccessKeyProvider(a.AccessKey, a.AccessSecretKey), a.RoleArn, provider.RoleArnProviderOptions{
-			STSEndpoint:   provider.GetSTSEndpoint(region, true),
-			SessionName:   a.RoleSessionName,
-			RefreshPeriod: a.RefreshPeriod,
-		})
-		providers = append(providers, ramRoleProvider)
-	}
-	if a.AccessKey != "" && a.AccessSecretKey != "" {
-		akProvider := provider.NewAccessKeyProvider(a.AccessKey, a.AccessSecretKey)
-		providers = append(providers, akProvider)
-	}
-
 	providers = append(providers, provider.NewECSMetadataProvider(provider.ECSMetadataProviderOptions{
 		RefreshPeriod: a.RefreshPeriod,
 	}))
@@ -84,30 +67,10 @@ func (m *IssuerManager) GetAuthCred(region string, maxConcurrentCount int, a *Au
 }
 
 func (m *IssuerManager) CreateAuthConfig(ctx context.Context, key string, issuerSpec *v1beta.PCAIssuerSpec) (*AuthConfig, error) {
-	var accessKey, accessKeySecret string
-	var authConfig *AuthConfig
-	if issuerSpec.AccessKey != nil {
-		accessKeyBytes, err := utils.GetConfigFromSecret(ctx, m.KubeClient, issuerSpec.AccessKey)
-		if err != nil {
-			klog.Errorf("get access key from secret error %v", err)
-			return nil, err
-		}
-		accessKey = string(accessKeyBytes)
-	}
-	if issuerSpec.AccessKeySecret != nil {
-		accessKeySecretBytes, err := utils.GetConfigFromSecret(ctx, m.KubeClient, issuerSpec.AccessKeySecret)
-		if err != nil {
-			klog.Errorf("get access key secret from secret error %v", err)
-			return nil, err
-		}
-		accessKeySecret = string(accessKeySecretBytes)
-	}
-	authConfig = &AuthConfig{
+	authConfig := &AuthConfig{
 		ClientName:            key,
 		RoleArn:               issuerSpec.RAMRoleARN,
 		OidcArn:               issuerSpec.OIDCProviderARN,
-		AccessKey:             accessKey,
-		AccessSecretKey:       accessKeySecret,
 		RoleSessionName:       issuerSpec.RAMRoleSessionName,
 		RoleSessionExpiration: issuerSpec.RoleSessionExpiration,
 		RemoteRoleArn:         issuerSpec.RemoteRAMRoleARN,

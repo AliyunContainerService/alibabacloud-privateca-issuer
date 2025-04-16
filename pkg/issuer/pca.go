@@ -67,7 +67,33 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 }
 
 func (i *IssuerManager) Check(ctx context.Context, issuerObject issuerapi.Issuer) error {
-	return nil
+	issuerSpec, key, err := i.getIssuerDetails(issuerObject)
+	if err != nil {
+		return err
+	}
+	pcaClient, err := i.GetClient(key)
+	if err != nil || pcaClient == nil {
+		return fmt.Errorf("get pca client %s error %v", key, err)
+	}
+	caResp, err := pcaClient.DescribeCACertificate(&cas20200630.DescribeCACertificateRequest{
+		Identifier: tea.String(issuerSpec.ParentIdentifier),
+	})
+	if err != nil {
+		return fmt.Errorf("describe ca certificate %s state error %v", issuerSpec.ParentIdentifier, err)
+	}
+	if caResp != nil && caResp.Body != nil && caResp.Body.Certificate != nil {
+		if tea.Int64Value(caResp.Body.Certificate.CertRemainingCount) <= 0 {
+			return fmt.Errorf("the quota for ca certificate %s has exceeded the limit", issuerSpec.ParentIdentifier)
+		}
+		beforeTime := time.UnixMilli(tea.Int64Value(caResp.Body.Certificate.BeforeDate)).UTC()
+		timeNow := time.Now().UTC()
+		afterTime := time.UnixMilli(tea.Int64Value(caResp.Body.Certificate.AfterDate)).UTC()
+		if timeNow.Before(beforeTime) || timeNow.After(afterTime) {
+			return fmt.Errorf("the current time is not within the validity period of the ca certificate %s", issuerSpec.ParentIdentifier)
+		}
+		return nil
+	}
+	return fmt.Errorf("check ca certificate state failed")
 }
 
 func (i *IssuerManager) getIssuerDetails(issuerObject issuerapi.Issuer) (*v1beta.PCAIssuerSpec, string, error) {
