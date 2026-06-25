@@ -56,7 +56,8 @@ func (i *IssuerManager) Sign(ctx context.Context, cr signer.CertificateRequestOb
 		return signer.PEMBundle{}, err
 	}
 	if resp != nil && resp.Body != nil {
-		pemBundle, err := pki.ParseSingleCertificateChainPEM([]byte(tea.StringValue(resp.Body.Certificate)))
+		fullChain := tea.StringValue(resp.Body.Certificate) + "\n" + tea.StringValue(resp.Body.CertificateChain)
+		pemBundle, err := pki.ParseSingleCertificateChainPEM([]byte(fullChain))
 		if err != nil {
 			return signer.PEMBundle{}, fmt.Errorf("parse %s single certificate chain pem error %v", key, err)
 		}
